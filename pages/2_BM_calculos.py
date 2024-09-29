@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from reportlab.lib.utils import ImageReader
 
 st.set_page_config(
-    page_title="Pojeto",
+    page_title="Projeto",
     page_icon="⚙",
     layout="wide",
     initial_sidebar_state="expanded"
