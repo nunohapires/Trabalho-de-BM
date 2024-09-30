@@ -401,5 +401,91 @@ if st.button("Gerar PDF"):
         buffer = gerar_pdf(decoded_info, nova_tag, Wr, Ef, Wrf, Fo, Sp, sig1, sig2, PPRL, MPRL, Cbe, Pt, T, Sig_min, Sig_adm, p_fluido, p_atrito, p_motor, df, chart_buffer)
         st.download_button("Download PDF", buffer, "relatorio_projeto_BM.pdf", "application/pdf")
 
+
+# Criação do DataFrame com todos os resultados
+resultados = {
+    'Descrição': [
+        'Peso da coluna de haste no ar',
+        'Empuxo nas hastes',
+        'Peso estático da coluna imersa ou flutuante',
+        'Peso da coluna de fluido',
+        'Comprimento efetivo do curso do pistão',
+        'Esforço dinâmico (máx)',
+        'Esforço dinâmico (mín)',
+        'Carga máxima',
+        'Carga mínima',
+        'Efeito de contrabalanceio',
+        'Torque máximo',
+        'Tensão mínima de ruptura',
+        'Tensão mínima presente',
+        'Tensão máxima admissível',
+        'Vazão estimada',
+        'Net lift',
+        'Potência necessária para elevar os fluidos',
+        'Potência necessária para superar perdas por atrito',
+        'Potência total do motor principal'
+    ],
+    'Valor': [
+        Wr,
+        Ef,
+        Wrf,
+        Fo,
+        Sp,
+        sig1,
+        sig2,
+        PPRL,
+        MPRL,
+        Cbe,
+        Pt,
+        T,
+        Sig_min,
+        Sig_adm,
+        q,
+        Ln,
+        p_fluido,
+        p_atrito,
+        p_motor
+    ],
+    'Unidade': [
+        'lbf',
+        'lbf',
+        'lbf',
+        'lbf',
+        'in',
+        'lbf',
+        'lbf',
+        'lbf',
+        'lbf',
+        'lbf',
+        'lbf.in',
+        'Psi',
+        'Psi',
+        'Psi',
+        'Stb/day',
+        'ft',
+        'hp',
+        'hp',
+        'hp'
+    ]
+}
+
+df_resultados = pd.DataFrame(resultados)
+
+# Opção para download da planilha
+st.markdown('### Baixar resultados em formato Excel')
+excel_buffer = BytesIO()
+with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
+    df_resultados.to_excel(writer, sheet_name='Resultados', index=False)
+    writer.save()
+
+excel_buffer.seek(0)
+st.download_button(
+    label="Download da Planilha",
+    data=excel_buffer,
+    file_name='resultados_projeto.xlsx',
+    mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+)
+
+
 st.markdown('- Os valores calculados da carta')
 df
