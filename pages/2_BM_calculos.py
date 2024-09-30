@@ -405,87 +405,39 @@ if st.button("Gerar PDF"):
 st.markdown('## Exportar Resultados')
 
 # Criação do DataFrame com todos os resultados
-# Criação do DataFrame com todos os resultados
 resultados = {
-    'Descrição': [
-        'Peso da coluna de haste no ar',
-        'Empuxo nas hastes',
-        'Peso estático da coluna imersa ou flutuante',
-        'Peso da coluna de fluido',
-        'Comprimento efetivo do curso do pistão',
-        'Esforço dinâmico (máx)',
-        'Esforço dinâmico (mín)',
-        'Carga máxima',
-        'Carga mínima',
-        'Efeito de contrabalanceio',
-        'Torque máximo',
-        'Tensão mínima de ruptura',
-        'Tensão mínima presente',
-        'Tensão máxima admissível',
-        'Vazão estimada',
-        'Net lift',
-        'Potência necessária para elevar os fluidos',
-        'Potência necessária para superar perdas por atrito',
-        'Potência total do motor principal'
+    'Parâmetro': [
+        'Peso específico do aço', 'Profundidade de assentamento', 'API do óleo', 
+        'Diâmetro da seção transversal da haste', 'Diâmetro do pistão', 
+        'Peso da coluna de haste no ar', 'Empuxo nas hastes', 
+        'Peso estático da coluna imersa ou flutuante', 'Peso da coluna de fluido', 
+        'Altura do suporte', 'Curso do êmbolo', 'Diâmetro externo da tubulação de produção',
+        'Fator de desaceleração', 'Diâmetro do cilindro de sucção', 'Diâmetro do êmbolo',
+        'Comprimento efetivo do curso do pistão', 'Esforço dinâmico (max)', 
+        'Esforço dinâmico (min)', 'Carga máxima', 'Carga mínima', 'Efeito de contrabalanceio',
+        'Torque máximo', 'Tensão mínima de ruptura', 'Tensão mínima presente', 
+        'Tensão máxima admissível', 'Vazão estimada', 'Net lift', 'Potência necessária', 
+        'Potência necessária para superar perdas por atrito', 'Potência total do motor principal'
     ],
     'Valor': [
-        Wr,
-        Ef,
-        Wrf,
-        Fo,
-        Sp,
-        sig1,
-        sig2,
-        PPRL,
-        MPRL,
-        Cbe,
-        Pt,
-        T,
-        Sig_min,
-        Sig_adm,
-        q,
-        Ln,
-        p_fluido,
-        p_atrito,
-        p_motor
-    ],
-    'Unidade': [
-        'lbf',
-        'lbf',
-        'lbf',
-        'lbf',
-        'in',
-        'lbf',
-        'lbf',
-        'lbf',
-        'lbf',
-        'lbf',
-        'lbf.in',
-        'Psi',
-        'Psi',
-        'Psi',
-        'Stb/day',
-        'ft',
-        'hp',
-        'hp',
-        'hp'
+        yaco, D, Api, Ar, D_pistao, Wr, Ef, Wrf, Fo, h, c, dp, L, d1, d2, 
+        Sp, sig1, sig2, PPRL, MPRL, Cbe, Pt, T, Sig_min, Sig_adm, 
+        q, Ln, p_fluido, p_atrito, p_motor
     ]
 }
 
 df_resultados = pd.DataFrame(resultados)
 
-# Opção para download da planilha
-st.markdown('### Baixar resultados em formato Excel')
+# Criando um arquivo Excel
 excel_buffer = BytesIO()
 with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
     df_resultados.to_excel(writer, sheet_name='Resultados', index=False)
-    writer.save()
 
-excel_buffer.seek(0)
+# Mostrando o botão para download do Excel
 st.download_button(
-    label="Download da Planilha",
-    data=excel_buffer,
-    file_name='resultados_projeto.xlsx',
+    label='Baixar Resultados em Excel',
+    data=excel_buffer.getvalue(),
+    file_name='resultados_projeto_bm.xlsx',
     mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 )
 
