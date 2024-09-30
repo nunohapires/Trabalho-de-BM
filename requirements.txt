@@ -4,3 +4,5 @@ pandas
 reportlab
 matplotlib
 xlsxwriter
+scikit-learn
+plotly
