@@ -390,6 +390,9 @@ def gerar_pdf(decoded_info, nova_tag, Wr, Ef, Wrf, Fo, Sp, sig1, sig2, PPRL, MPR
     buffer.seek(0)
     return buffer
 
+# Adicionando uma seção para exportar resultados para uma planilha
+st.markdown('## Exportar Resultados')
+
 nova_tag = gerar_nova_tag(Wr, PPRL, Sp)
 if original_tag == nova_tag:
     st.success("A unidade foi dimensionada com sucesso!")
@@ -401,9 +404,6 @@ if st.button("Gerar PDF"):
         buffer = gerar_pdf(decoded_info, nova_tag, Wr, Ef, Wrf, Fo, Sp, sig1, sig2, PPRL, MPRL, Cbe, Pt, T, Sig_min, Sig_adm, p_fluido, p_atrito, p_motor, df, chart_buffer)
         st.download_button("Download PDF", buffer, "relatorio_projeto_BM.pdf", "application/pdf")
         
-# Adicionando uma seção para exportar resultados para uma planilha
-st.markdown('## Exportar Resultados')
-
 # Criação do DataFrame com todos os resultados
 resultados = {
     'Parâmetro': [
@@ -427,7 +427,7 @@ resultados = {
 }
 
 df_resultados = pd.DataFrame(resultados)
-df_resultados
+
 # Criando um arquivo Excel
 excel_buffer = BytesIO()
 with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
