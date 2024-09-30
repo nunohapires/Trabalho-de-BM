@@ -404,6 +404,7 @@ if st.button("Gerar PDF"):
 # Adicionando uma seção para exportar resultados para uma planilha
 st.markdown('## Exportar Resultados')
 
+# Criação do DataFrame com todos os resultados
 resultados = {
     'Parâmetro': [
         'Peso específico do aço', 'Profundidade de assentamento', 'API do óleo', 
@@ -422,22 +423,11 @@ resultados = {
         yaco, D, Api, Ar, D_pistao, Wr, Ef, Wrf, Fo, h, c, dp, L, d1, d2, 
         Sp, sig1, sig2, PPRL, MPRL, Cbe, Pt, T, Sig_min, Sig_adm, 
         q, Ln, p_fluido, p_atrito, p_motor
-    ],
-    'Unidade': [
-        'kg/m³', 'ft', '°API', 'in²', 'ft', 
-        'lbf', 'lbf', 'lbf', 'lbf', 
-        'ft', 'ft', 'ft', '', 
-        'ft', 'ft', 'ft', 
-        'ft', 'lbf', 'lbf', 
-        'lbf', 'lbf', 'lbf', 
-        'lbf·in', 'Psi', 'Psi', 'Psi', 
-        'STB/day', 'ft', 'hp', 
-        'hp', 'hp'
     ]
 }
 
 df_resultados = pd.DataFrame(resultados)
-
+df_resultados
 # Criando um arquivo Excel
 excel_buffer = BytesIO()
 with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
@@ -450,5 +440,6 @@ st.download_button(
     file_name='resultados_projeto_bm.xlsx',
     mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 )
+
 st.markdown('- Os valores calculados da carta')
 df
