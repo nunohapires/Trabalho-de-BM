@@ -438,7 +438,7 @@ resultados = {
 }
 
 df_resultados = pd.DataFrame(resultados)
-
+df_resultados
 # Criando um arquivo Excel
 excel_buffer = BytesIO()
 with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
