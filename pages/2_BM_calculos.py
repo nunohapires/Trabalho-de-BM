@@ -424,26 +424,16 @@ resultados = {
         Sp, sig1, sig2, PPRL, MPRL, Cbe, Pt, T, Sig_min, Sig_adm, 
         q, Ln, p_fluido, p_atrito, p_motor
     ],
-       'Unidade': [
-        'lbf',
-        'lbf',
-        'lbf',
-        'lbf',
-        'in',
-        'lbf',
-        'lbf',
-        'lbf',
-        'lbf',
-        'lbf',
-        'lbf.in',
-        'Psi',
-        'Psi',
-        'Psi',
-        'Stb/day',
-        'ft',
-        'hp',
-        'hp',
-        'hp'
+    'Unidade': [
+        'kg/m³', 'ft', '°API', 'in²', 'ft', 
+        'lbf', 'lbf', 'lbf', 'lbf', 
+        'ft', 'ft', 'ft', '', 
+        'ft', 'ft', 'ft', 
+        'ft', 'lbf', 'lbf', 
+        'lbf', 'lbf', 'lbf', 
+        'lbf·in', 'Psi', 'Psi', 'Psi', 
+        'STB/day', 'ft', 'hp', 
+        'hp', 'hp'
     ]
 }
 
