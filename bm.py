@@ -4,7 +4,7 @@ Equações e limites de aplicação documentados no README. Sem dependências de
 """
 
 from dataclasses import dataclass, fields
-from math import isfinite, pi, sqrt
+from math import cos, isfinite, pi, sqrt
 import re
 
 
@@ -15,6 +15,14 @@ MODEL_NOTE = (
     "água, desvio do poço ou um modelo de atrito viscoso. A comparação de capacidades "
     "não substitui a seleção pelo catálogo do fabricante."
 )
+CARD_NOTE = (
+    "Aproximação didática de superfície com transferência elástica de carga e inércia. "
+    "Não é uma carta medida nem uma solução da equação de ondas. Não inclui gás, "
+    "pancada de fluido, atrito viscoso ou falhas de válvulas. As verificações de "
+    "dimensionamento continuam usando PPRL e MPRL do modelo original."
+)
+
+
 REFERENCES = (
     ("Guo, Liu e Tan · Petroleum Production Engineering, 2ª ed., 2017", "https://www.sciencedirect.com/book/9780128093740/petroleum-production-engineering"),
     ("Merey (2020) · Equações de dimensionamento de BM, tabela 3", "https://doi.org/10.18466/cbayarfbe.646805"),
@@ -261,3 +269,27 @@ def operating_warnings(p: ProjectInputs, r: dict[str, float]) -> list[str]:
     if r["max_stress"] >= p.tensile_strength:
         warnings.append("A tensão máxima alcança ou ultrapassa a resistência mínima à tração informada.")
     return warnings
+
+
+def approximate_dynamometer(p: ProjectInputs, r: dict[str, float]) -> list[tuple[float, float]]:
+    """Ciclo de superfície (in, lbf): movimento harmônico e carga elástica gradual.
+
+    O alongamento er + et define a distância de transferência da carga de fluido.
+    A aceleração é a segunda derivada do deslocamento adotado. Sem ruído artificial
+    ou ajuste aos extremos da envoltória; esta aproximação não prevê uma carta real.
+    """
+    stroke = r["surface_stroke"]
+    stretch = r["rod_stretch"] + r["tubing_stretch"]
+    if stretch >= stroke:
+        raise ValueError("O alongamento elástico total atinge o curso de superfície; a carta aproximada está fora do domínio deste modelo.")
+    ratio = p.crank_radius / p.pitman_length
+    inertia = r["rod_weight"] * stroke * r["operating_speed"] ** 2 / 70471.2
+    points = []
+    for index in range(721):
+        angle = 2 * pi * index / 720
+        position = stroke / 2 * (1 - cos(angle)) + ratio * stroke / 8 * (1 - cos(2 * angle))
+        fraction = position / stretch if index <= 360 else 1 - (stroke - position) / stretch
+        fluid_load = r["fluid_load"] * min(1, max(0, fraction))
+        load = r["buoyant_weight"] + fluid_load + inertia * (cos(angle) + ratio * cos(2 * angle))
+        points.append((position, load))
+    return points

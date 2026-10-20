@@ -6,10 +6,11 @@ from pathlib import Path
 import streamlit as st
 
 from bm import (
-    INPUT_LABELS, MODEL_NOTE, REFERENCES, ProjectInputs, calculate, capacity_checks,
-    decode_pump_tag, operating_warnings,
+    CARD_NOTE, INPUT_LABELS, MODEL_NOTE, REFERENCES, ProjectInputs, calculate, capacity_checks,
+    approximate_dynamometer, decode_pump_tag, operating_warnings,
 )
 from reports import dynamometer_figure, export_excel, export_pdf, format_number, result_table
+from visuals import show_data_sources, show_reasoning, show_system
 
 
 ROOT = Path(__file__).resolve().parent
@@ -33,6 +34,7 @@ def project_form():
     with st.form("project_form", border=True):
         well, equipment, criteria = st.tabs(["Poço e fluido", "Unidade e hastes", "Critérios de cálculo"])
         with well:
+            st.caption("No esquema: poço e nível dinâmico em azul; pistão e fluido em turquesa. Consulte registros do poço, teste de nível e análise do óleo.")
             left, middle, right = st.columns(3)
             with left:
                 depth = number("depth", minimum=1.0, maximum=30000.0, step=100.0)
@@ -46,6 +48,7 @@ def project_form():
                 efficiency = st.number_input("Eficiência volumétrica (%)", min_value=1.0, max_value=100.0,
                                              value=saved.efficiency * 100, step=1.0, key="efficiency_percent") / 100
         with equipment:
+            st.caption("Consulte a placa e o desenho dimensional da unidade, além das especificações da bomba, das hastes e da tubulação.")
             tag_text = st.text_input("TAG da unidade", value=st.session_state.get("project_tag", "C-456D-256-120"), max_chars=40, key="unit_tag",
                                      help="C = convencional; 456 = torque em mil lbf·in; D = redutor duplo; 256 = carga em cem lbf; 120 = curso máximo em in.")
             left, middle, right = st.columns(3)
@@ -64,6 +67,7 @@ def project_form():
                 beam_rear = number("beam_rear", minimum=0.1, maximum=1000.0, step=1.0)
                 beam_front = number("beam_front", minimum=0.1, maximum=1000.0, step=1.0)
         with criteria:
+            st.caption("Aqui você define como a unidade opera e as margens adotadas no estudo. Esses critérios não são extraídos da TAG.")
             left, middle, right = st.columns(3)
             with left:
                 speed = number("speed", minimum=0.1, maximum=100.0, step=0.5)
@@ -79,7 +83,7 @@ def project_form():
                 motor_factor = number("motor_factor", minimum=1.0, maximum=3.0, step=0.05,
                                       help="Margem aplicada à soma das potências hidráulica e de atrito. Independente do fator de serviço das hastes.")
                 elastic_modulus = number("elastic_modulus", minimum=100000.0, maximum=100000000.0, step=1000000.0)
-        st.form_submit_button("Calcular dimensionamento", type="primary", width="stretch")
+        st.form_submit_button("Calcular dimensionamento", type="primary", width="stretch", key="calculate_project")
     return tag_text, ProjectInputs(
         depth=depth, oil_api=oil_api, rod_diameter=rod_diameter, plunger_diameter=plunger_diameter,
         steel_weight=steel_weight, tubing_od=tubing_od, tubing_id=tubing_id,
@@ -113,6 +117,9 @@ def show_results(p, tag, r):
     for warning in warnings:
         st.warning(warning, icon="⚠️")
 
+    st.markdown("#### Dos dados aos resultados")
+    show_reasoning(p, r)
+
     unit_tab, chart_tab, calculations_tab, downloads_tab = st.tabs([
         "Capacidade da unidade", "Carta dinamométrica", "Memória de cálculo", "Exportar relatório",
     ])
@@ -139,21 +146,37 @@ def show_results(p, tag, r):
             else:
                 st.success("As hastes atendem ao critério simplificado de tensão admissível.")
     with chart_tab:
-        st.markdown("**Envoltória idealizada de superfície**")
-        st.caption("Representação de S, PPRL e MPRL. Não corresponde a uma carta medida ou a uma simulação de fundo.")
-        st.pyplot(dynamometer_figure(r, dark=True), width="stretch")
+        st.markdown("**Do modelo ideal ao ciclo aproximado**")
+        st.caption("As duas cartas usam o projeto calculado: mesma geometria, velocidade, fluido e coluna de hastes.")
+        st.pyplot(dynamometer_figure(r, p=p, dark=True, load_capacity=tag.load_capacity), width="stretch")
+        left, middle, right = st.columns(3)
+        left.info("**Ideal · linha tracejada**\n\nLimites de carga PPRL e MPRL usados no dimensionamento. A largura é o curso de superfície S.")
+        middle.info("**Aproximada · linha amarela**\n\nA carga é transferida ao longo do movimento. A elasticidade inclina as laterais e a inércia curva os trechos de subida e descida.")
+        right.info("**Medida · dados de campo**\n\nUma carta real exige registrar carga e posição da haste durante o ciclo. Essa medição ainda não foi importada.")
+        try:
+            points = approximate_dynamometer(p, r)
+        except ValueError as error:
+            st.warning(str(error))
+        else:
+            lower, upper = min(v for _, v in points), max(v for _, v in points)
+            st.caption(f"Ciclo aproximado: {format_number(lower, 0)} a {format_number(upper, 0)} lbf · Transferência elástica: {format_number(r['rod_stretch'] + r['tubing_stretch'])} in · Período: {format_number(60 / r['operating_speed'], 2)} s")
+        with st.expander("Como esta carta aproximada é construída?"):
+            st.write(CARD_NOTE)
+            st.markdown("**1. Movimento:** uma aproximação harmônica usa o curso S e a razão manivela/biela.\n\n**2. Transferência de carga:** a carga do fluido é assumida e liberada gradualmente ao longo de er + et.\n\n**3. Inércia:** a aceleração e o peso das hastes modificam a carga durante o ciclo.")
+            st.caption("O traçado não recebe ruído artificial nem é ajustado para coincidir com os extremos da carta ideal. Eficiência volumétrica e nível dinâmico não alteram a curva neste modelo de coluna hidrostática completa.")
+            st.markdown("[Referência conceitual: Echometer · QRod Help and User Guide](https://www.echometer.com/Portals/0/Quick%20Reference%20Guides/QRod%20Help%20and%20User%20Guide.pdf). A aproximação didática deste projeto não reproduz o simulador QRod.")
     with calculations_tab:
         st.dataframe(result_table(r), hide_index=True, width="stretch",
                      column_config={"Valor": st.column_config.NumberColumn(format="%.4f")})
         st.caption("Valores sem arredondamento intermediário. As unidades estão indicadas em cada linha.")
     with downloads_tab:
         st.markdown("**Leve o dimensionamento com você**")
-        st.write("Os arquivos incluem as entradas utilizadas, os resultados, a comparação de capacidades, os alertas e a carta idealizada.")
+        st.write("Os arquivos incluem as entradas utilizadas, os resultados, a comparação de capacidades, os alertas e a comparação das cartas de superfície.")
         signature = (tuple(asdict(p).items()), tag.code)
         if st.session_state.get("report_signature") != signature:
             st.session_state.pop("report_files", None)
             st.session_state["report_signature"] = signature
-        if st.button("Preparar PDF e Excel", type="primary"):
+        if st.button("Preparar PDF e Excel", type="primary", key="prepare_reports"):
             try:
                 with st.spinner("Preparando os relatórios…"):
                     files = (export_pdf(p, tag, r), export_excel(p, tag, r))
@@ -206,12 +229,21 @@ def main():
     .stMainBlockContainer {max-width: 1280px; padding: 3.5rem 2rem 3rem;}
     h1 {letter-spacing: -0.045em;}
     h2, h3 {letter-spacing: -0.025em;}
+    h1, h2, h3, h4 {scroll-margin-top: 5rem;}
     [data-testid="stMetricValue"] {font-variant-numeric: tabular-nums; font-size: clamp(1.2rem, 2.2vw, 2rem);}
     [data-testid="stMetricLabel"] {min-height: 2.6rem; align-items: flex-start;}
     [data-testid="stMetricLabel"] [data-testid="stMarkdownContainer"],
     [data-testid="stMetricLabel"] p {white-space: normal; overflow: visible; text-overflow: clip;}
     [data-testid="stSidebar"] {border-right: 1px solid #27272a;}
     [data-testid^="stBaseButton-primary"] {color: #001b18;}
+    .bm-flow {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin:.4rem 0 1.7rem;}
+    .bm-flow-card {padding:1.1rem;border:1px solid #263337;border-top:3px solid var(--accent);border-radius:12px;background:#080d0f;}
+    .bm-flow-card>span {font-size:.8rem;color:var(--accent);font-weight:600;}
+    .bm-flow-card p {font-size:.85rem;color:#a6b5bf;line-height:1.6;min-height:5.4rem;margin:.8rem 0 0;}
+    .bm-flow-card strong {display:block;font-size:1.5rem;color:#edf4f7;}
+    .bm-flow-card small {display:block;color:#a6b5bf;margin-top:.3rem;}
+    .bm-flow-arrow {color:var(--accent);font-size:1.3rem;margin:.3rem 0;}
+    @media(max-width:900px) {.bm-flow {grid-template-columns:1fr}.bm-flow-card p {min-height:0;}}
     </style>""")
     with st.sidebar:
         st.markdown("## ⚙️ Projeto BM")
@@ -220,7 +252,7 @@ def main():
         page = st.radio("Navegação", ["Dimensionamento", "Método e referências"], label_visibility="collapsed")
         st.divider()
         st.markdown("**Um projeto, todas as etapas.**")
-        st.caption("1. Informe os dados\n\n2. Avalie os resultados\n\n3. Exporte o relatório")
+        st.markdown("[01 · Entenda o sistema](#o-sistema-em-movimento)\n\n[02 · Informe os dados](#01-dados-do-projeto)\n\n[03 · Analise o dimensionamento](#02-analise-do-dimensionamento)")
         st.divider()
         st.caption("Nuno Henrique Albuquerque Pires\n\nUniversidade Federal de Alagoas")
     if page == "Método e referências":
@@ -228,7 +260,8 @@ def main():
         return
     st.caption("PROJETO BM / UNIDADE CONVENCIONAL")
     st.title("Dimensionamento de bombeio mecânico")
-    st.write("Avalie a unidade, entenda as cargas e estime a produção em um só lugar.")
+    st.write("Entenda o movimento, conheça os dados e acompanhe cada resultado.")
+    overview = st.container()
     tag_text, inputs = project_form()
     st.session_state["project_inputs"] = inputs
     st.session_state["project_tag"] = tag_text
@@ -240,6 +273,10 @@ def main():
         st.error(str(error))
         st.info("Corrija os dados e envie o formulário novamente para visualizar os resultados.")
         st.stop()
+    with overview:
+        st.subheader("O sistema em movimento")
+        show_system(inputs, results)
+        show_data_sources(inputs)
     st.divider()
     show_results(inputs, tag, results)
 

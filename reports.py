@@ -16,8 +16,8 @@ from reportlab.platypus import (
 )
 
 from bm import (
-    INPUT_LABELS, MODEL_NOTE, REFERENCES, RESULT_LABELS, ProjectInputs, PumpTag,
-    capacity_checks, operating_warnings,
+    CARD_NOTE, INPUT_LABELS, MODEL_NOTE, REFERENCES, RESULT_LABELS, ProjectInputs, PumpTag,
+    approximate_dynamometer, capacity_checks, operating_warnings,
 )
 
 
@@ -40,11 +40,13 @@ def result_table(results: dict[str, float]) -> pd.DataFrame:
     ])
 
 
-def dynamometer_figure(r: dict[str, float], *, dark: bool = False) -> Figure:
-    """Envoltória idealizada de carga de superfície, sem simular uma carta medida."""
+def dynamometer_figure(r: dict[str, float], *, p: ProjectInputs | None = None,
+                       dark: bool = False, load_capacity: float | None = None) -> Figure:
+    """Compara a envoltória ideal com um ciclo elástico/inercial aproximado."""
     background = "#000000" if dark else "#ffffff"
     foreground = "#f1f5f9" if dark else "#172b3a"
     accent = "#2dd4bf" if dark else "#0f766e"
+    estimated = "#fbbf24" if dark else "#b45309"
     grid_color = "#27272a" if dark else "#e2e8f0"
     fig = Figure(figsize=(9, 4.5), layout="constrained", facecolor=background)
     FigureCanvasAgg(fig)
@@ -56,20 +58,41 @@ def dynamometer_figure(r: dict[str, float], *, dark: bool = False) -> Figure:
     stroke, low, high = r["surface_stroke"], r["min_load"], r["peak_load"]
     x, y = [0, 0, stroke, stroke, 0], [low, high, high, low, low]
     ax.fill(x, y, color=accent, alpha=0.10)
-    ax.plot(x, y, color=accent, linewidth=2.4)
-    ax.scatter(x[:4], y[:4], color=accent, s=30, zorder=3)
+    ax.plot(x, y, color=accent, linewidth=1.8, linestyle="--", label="Ideal · envoltória")
+    points = []
+    if p is not None:
+        try:
+            points = approximate_dynamometer(p, r)
+        except ValueError:
+            ax.text(.5, .5, "Aproximação indisponível\nAlongamento elástico ≥ curso S",
+                    transform=ax.transAxes, ha="center", color=foreground, fontsize=9)
+    if points:
+        positions, loads = zip(*points)
+        ax.plot(positions, loads, color=estimated, linewidth=2.8, label="Aproximada · elasticidade + inércia")
+        for index, label, offset in [(180, "Subida →", 18), (540, "← Descida", -24)]:
+            ax.annotate(label, points[index], xytext=(0, offset), textcoords="offset points",
+                        ha="center", color=estimated, fontsize=10)
+            ax.annotate("", xy=points[index+20], xytext=points[index],
+                        arrowprops={"arrowstyle": "->", "color": estimated, "lw": 2.5})
     ax.set(xlabel="Deslocamento da haste polida (in)", ylabel="Carga (lbf)")
     ax.set_xlim(-stroke * 0.05, stroke * 1.08)
     span = max(high - low, 1)
-    ax.set_ylim(min(0, low - span * 0.12), high + span * 0.18)
+    ax.set_ylim(min(0, low - span * 0.12, min((v for _, v in points), default=low) - span*.12),
+                max(high, load_capacity or high, max((v for _, v in points), default=high)) * 1.16)
     if low < 0:
         ax.axhline(0, color="#b45309", linestyle="--", linewidth=1)
-    ax.annotate(f"PPRL  {format_number(high, 0)} lbf", (stroke * 0.5, high),
-                xytext=(0, 10), textcoords="offset points", ha="center", color=accent)
-    ax.annotate(f"MPRL  {format_number(low, 0)} lbf", (stroke * 0.5, low),
-                xytext=(0, -18), textcoords="offset points", ha="center", color=foreground)
+    ax.annotate(f"PPRL  {format_number(high, 0)} lbf", (stroke * 0.02, high),
+                xytext=(0, 10), textcoords="offset points", ha="left", color=accent)
+    ax.annotate(f"MPRL  {format_number(low, 0)} lbf", (stroke * 0.02, low),
+                xytext=(0, -18), textcoords="offset points", ha="left", color=foreground)
+    if load_capacity is not None:
+        ax.axhline(load_capacity, color="#f87171" if dark else "#b91c1c", linestyle="--", linewidth=1.3)
+        ax.text(stroke*.02, load_capacity, f"Capacidade da unidade · {format_number(load_capacity, 0)} lbf",
+                color="#f87171" if dark else "#b91c1c", fontsize=9, va="bottom")
     ax.grid(axis="y", color=grid_color, linewidth=0.7)
     ax.set_axisbelow(True)
+    ax.legend(loc="lower center", bbox_to_anchor=(.5, 1.01), ncol=2,
+              frameon=False, labelcolor=foreground, fontsize=9)
     for side in ("top", "right"):
         ax.spines[side].set_visible(False)
     ax.spines["bottom"].set_color(grid_color)
@@ -77,9 +100,9 @@ def dynamometer_figure(r: dict[str, float], *, dark: bool = False) -> Figure:
     return fig
 
 
-def chart_png(results: dict[str, float]) -> bytes:
+def chart_png(results: dict[str, float], p: ProjectInputs | None = None, load_capacity: float | None = None) -> bytes:
     buffer = BytesIO()
-    dynamometer_figure(results).savefig(buffer, format="png", dpi=160)
+    dynamometer_figure(results, p=p, load_capacity=load_capacity).savefig(buffer, format="png", dpi=160)
     return buffer.getvalue()
 
 
@@ -92,10 +115,14 @@ def export_excel(p: ProjectInputs, tag: PumpTag, r: dict[str, float]) -> bytes:
             "Capacidades": pd.DataFrame(capacity_checks(tag, r)),
             "Método": pd.DataFrame({"Informação": [
                 f"TAG avaliada: {tag.code}", MODEL_NOTE,
-                "Carta idealizada de superfície: usa S, PPRL e MPRL; não é uma carta medida.",
+                "Carta idealizada de superfície: usa S, PPRL e MPRL; não é uma carta medida.", CARD_NOTE,
                 *operating_warnings(p, r), *[f"{label}: {url}" for label, url in REFERENCES],
             ]}),
         }
+        try:
+            sheets["Pontos da carta"] = pd.DataFrame(approximate_dynamometer(p, r), columns=["Deslocamento (in)", "Carga aproximada (lbf)"])
+        except ValueError as error:
+            sheets["Método"].loc[len(sheets["Método"])] = str(error)
         for name, frame in sheets.items():
             frame.to_excel(writer, sheet_name=name, index=False)
             sheet = writer.sheets[name]
@@ -109,8 +136,8 @@ def export_excel(p: ProjectInputs, tag: PumpTag, r: dict[str, float]) -> bytes:
         method.set_column(0, 0, 110, writer.book.add_format({"text_wrap": True}))
         for row in range(1, len(sheets["Método"]) + 1):
             method.set_row(row, 65)
-        chart = writer.book.add_worksheet("Carta idealizada")
-        chart.insert_image("B2", "carta.png", {"image_data": BytesIO(chart_png(r)), "x_scale": 0.65, "y_scale": 0.65})
+        chart = writer.book.add_worksheet("Cartas de superfície")
+        chart.insert_image("B2", "carta.png", {"image_data": BytesIO(chart_png(r, p, tag.load_capacity)), "x_scale": 0.65, "y_scale": 0.65})
     return buffer.getvalue()
 
 
@@ -157,9 +184,9 @@ def export_pdf(p: ProjectInputs, tag: PumpTag, r: dict[str, float]) -> bytes:
     add_table("Memória de cálculo · Resultados", ["Parâmetro", "Valor", "Unidade"], rows, [10 * cm, 4 * cm, 4 * cm])
     story.append(PageBreak())
     story.extend([
-        Paragraph("Carta dinamométrica idealizada", styles["Heading2"]),
-        Image(BytesIO(chart_png(r)), width=18 * cm, height=9 * cm),
-        Paragraph("Envoltória retangular de superfície com S, PPRL e MPRL. Não representa uma carta medida ou uma simulação de fundo.", styles["BodyText"]),
+        Paragraph("Cartas dinamométricas de superfície", styles["Heading2"]),
+        Image(BytesIO(chart_png(r, p, tag.load_capacity)), width=18 * cm, height=9 * cm),
+        Paragraph("Ideal: envoltória retangular com S, PPRL e MPRL. " + CARD_NOTE, styles["BodyText"]),
         Spacer(1, 16), Paragraph("Referências", styles["Heading2"]),
     ])
     for label, url in REFERENCES:
