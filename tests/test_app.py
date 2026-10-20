@@ -26,28 +26,28 @@ class AppTests(unittest.TestCase):
         self.assert_no_exception()
         self.assertGreater(len(self.app.metric), 0)
         self.app.text_input[0].set_value("invalid")
-        self.app.button[0].click().run()
+        self.app.button(key="calculate_project").click().run()
         self.assert_no_exception()
         self.assertIn("TAG inválida", self.app.error[0].value)
         self.assertEqual(len(self.app.metric), 0)
         self.app.text_input[0].set_value("C-640D-305-168")
-        self.app.button[0].click().run()
+        self.app.button(key="calculate_project").click().run()
         self.assert_no_exception()
         self.assertGreater(len(self.app.metric), 0)
 
     def test_invalid_geometry_and_capacity_warning(self):
         self.app.number_input(key="tubing_id").set_value(4.0)
-        self.app.button[0].click().run()
+        self.app.button(key="calculate_project").click().run()
         self.assert_no_exception()
         self.assertIn("diâmetro interno", self.app.error[0].value)
         self.app.number_input(key="tubing_id").set_value(2.992)
         self.app.text_input[0].set_value("C-1D-1-1")
-        self.app.button[0].click().run()
+        self.app.button(key="calculate_project").click().run()
         self.assert_no_exception()
         self.assertIn("ultrapassam", self.app.error[0].value)
 
     def test_downloads_persist_and_expire_after_input_change(self):
-        self.app.button[1].click().run()
+        self.app.button(key="prepare_reports").click().run()
         self.assert_no_exception()
         pdf, excel = self.app.session_state["report_files"]
         self.assertTrue(pdf.startswith(b"%PDF"))
@@ -55,14 +55,14 @@ class AppTests(unittest.TestCase):
         self.app.run()
         self.assertEqual(self.app.session_state["report_files"][0], pdf)
         self.app.number_input(key="wellhead_pressure").set_value(200.0)
-        self.app.button[0].click().run()
+        self.app.button(key="calculate_project").click().run()
         self.assert_no_exception()
         self.assertNotIn("report_files", self.app.session_state)
 
     def test_method_navigation_and_legacy_entrypoint(self):
         self.app.number_input(key="wellhead_pressure").set_value(250.0)
         self.app.text_input[0].set_value("C-640D-305-168")
-        self.app.button[0].click().run()
+        self.app.button(key="calculate_project").click().run()
         self.app.sidebar.radio[0].set_value("Método e referências").run()
         self.assert_no_exception()
         self.assertEqual(self.app.title[0].value, "Método e referências")
@@ -72,6 +72,26 @@ class AppTests(unittest.TestCase):
         self.assertEqual(self.app.text_input[0].value, "C-640D-305-168")
         legacy = AppTest.from_file(str(ROOT / "1_⚙BM.py"), default_timeout=30).run()
         self.assertEqual(len(legacy.exception), 0)
+
+    def test_cards_replace_scenario_exploration(self):
+        self.assert_no_exception()
+        self.assertNotIn("Explorar cenários", [tab.label for tab in self.app.tabs])
+        self.assertEqual(len(self.app.slider), 0)
+        self.assertTrue(any("Transferência elástica" in caption.value for caption in self.app.caption))
+        previous = next(c.value for c in self.app.caption if "Ciclo aproximado:" in c.value)
+        self.app.number_input(key="speed").set_value(14.0)
+        self.app.button(key="calculate_project").click().run()
+        self.assert_no_exception()
+        current = next(c.value for c in self.app.caption if "Ciclo aproximado:" in c.value)
+        self.assertNotEqual(current, previous)
+
+    def test_card_outside_domain_keeps_dimensioning_available(self):
+        self.app.number_input(key="elastic_modulus").set_value(5000000.0)
+        self.app.number_input(key="speed").set_value(20.0)
+        self.app.button(key="calculate_project").click().run()
+        self.assert_no_exception()
+        self.assertGreater(len(self.app.metric), 0)
+        self.assertTrue(any("fora do domínio" in warning.value for warning in self.app.warning))
 
 
 class ExportTests(unittest.TestCase):
@@ -85,9 +105,10 @@ class ExportTests(unittest.TestCase):
         with ZipFile(BytesIO(export_excel(inputs, tag, results))) as workbook:
             self.assertIn("xl/media/image1.png", workbook.namelist())
             text = workbook.read("xl/sharedStrings.xml").decode()
-            for value in ("C-456D-256-120", "STB/d", "nível dinâmico", "motor"):
+            for value in ("C-456D-256-120", "STB/d", "nível dinâmico", "motor", "Carga aproximada (lbf)", "equação de ondas"):
                 self.assertIn(value, text)
-        figure = dynamometer_figure(results)
+        figure = dynamometer_figure(results, p=inputs)
+        self.assertEqual(figure.axes[0].lines[1].get_label(), "Aproximada · elasticidade + inércia")
         self.assertAlmostEqual(max(figure.axes[0].lines[0].get_xdata()), results["surface_stroke"])
 
 

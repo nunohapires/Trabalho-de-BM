@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {color-scheme:dark;--ink:#edf4f7;--muted:#a0afb9;--teal:#2dd4bf;--line:#29373d}
+* {box-sizing:border-box}html {overflow:hidden}body {margin:0;background:#000;color:var(--ink);font:14px system-ui,sans-serif}
+.panel {border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#070d10}
+.toolbar {display:flex;justify-content:space-between;align-items:center;gap:14px;padding:18px 22px;border-bottom:1px solid var(--line)}
+.eyebrow {font-size:11px;letter-spacing:.13em;color:var(--teal);font-weight:700}.sub {color:var(--muted);font-size:12px;margin-top:6px}
+.controls {display:flex;gap:8px;align-items:center;flex-wrap:wrap}.controls label {font-size:12px;color:var(--muted)}
+button,select {font:inherit;color:var(--ink);border:1px solid #3d5059;background:#111c22;border-radius:8px;padding:9px 11px;cursor:pointer}
+button:hover,select:hover {background:#1a3238}button:focus-visible,select:focus-visible,input:focus-visible,[role=button]:focus-visible {outline:3px solid #fbbf24;outline-offset:3px}
+button[aria-pressed=true] {background:#0c3530;border-color:var(--teal);color:#75f6e4}
+.scenes {display:grid;grid-template-columns:1.65fr 1fr}.scene {margin:0;padding:16px 14px 0;min-width:0}.scene+.scene {border-left:1px solid var(--line);background:#0a141a}
+figcaption {display:flex;gap:8px;align-items:center;color:#c7d4dc;font-size:12px;padding:0 6px 10px}.badge {font-size:10px;letter-spacing:.07em;color:#7dd3c5;border:1px solid #285047;border-radius:4px;padding:3px 5px}
+svg {width:100%;height:auto;display:block}svg text {font-family:system-ui,sans-serif}.label {fill:#b9cbd3;font-size:15px}.small {fill:#b0c0ca;font-size:13px}.value {fill:#f2f7fa;font-size:17px;font-weight:600}
+.callout {fill:none;stroke:#718892;stroke-width:1.2;stroke-dasharray:3 4}.hot {cursor:pointer}.hot:hover [data-outline],.hot[aria-pressed=true] [data-outline] {stroke:#fbbf24}
+.water {fill:none;stroke:#50e3d2;stroke-width:3;stroke-linecap:round;stroke-dasharray:5 13}.closed {color:#fbbf24}.open {color:#5eead4}
+.phase-panel {display:grid;grid-template-columns:1fr 1fr;gap:14px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:16px 22px;background:#0b181d}
+.phase-panel h3 {margin:0 0 6px;font-size:17px}.phase-panel p {color:#b9cbd3;line-height:1.5;font-size:12px;margin:0}.valves {display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.valves span {font-size:11px;padding:5px 8px;background:#070e12;border:1px solid #32434b;border-radius:6px}
+.scrub label {display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:11px}input[type=range] {width:100%;accent-color:#2dd4bf;cursor:pointer;margin:10px 0 0}
+.chips {display:flex;flex-wrap:wrap;gap:8px;padding:18px 22px}.chips button {font-size:12px}
+.details {display:grid;grid-template-columns:1.1fr 1fr;gap:22px;padding:20px 22px;border-top:1px solid var(--line);background:#0a1215}.details h3 {font-size:19px;margin:0 0 8px}.details p {margin:0;color:#b5c5ce;line-height:1.6}
+.source {font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:8px}.facts {display:grid;grid-template-columns:1fr 1fr;gap:12px}.fact {border-left:2px solid #237b70;padding:2px 0 2px 10px}.fact small {display:block;color:var(--muted);font-size:11px}.fact strong {display:block;font-size:16px;margin-top:3px}
+.foot {display:flex;justify-content:space-between;gap:12px;padding:13px 22px;color:var(--muted);font-size:11px;line-height:1.5}.foot a {color:#a8c8d5}
+@media(max-width:700px) {.toolbar {align-items:flex-start;flex-direction:column;padding:16px}.scenes {grid-template-columns:1fr}.scene+.scene {border-left:0;border-top:1px solid var(--line)}.scene svg {max-height:420px}.phase-panel,.details {grid-template-columns:1fr;padding:16px}.chips {padding:16px;gap:6px}.chips button {padding:8px}.foot {flex-direction:column;padding:14px 16px}}
+</style>
+</head><body>
+<section class="panel" aria-label="Como funciona o bombeio mecânico">
+<div class="toolbar"><div><div class="eyebrow">DA ROTAÇÃO À ELEVAÇÃO DO FLUIDO</div><div class="sub">Acompanhe as articulações e veja a bomba por dentro.</div></div><div class="controls"><label for="pace">Ritmo visual</label><select id="pace"><option value="1">1× · operação</option><option value="0.25">0,25× · câmera lenta</option></select><button id="pause" type="button" aria-pressed="false">Pausar animação</button></div></div>
+<div class="scenes">
+<figure class="scene"><figcaption><span class="badge">01 / SUPERFÍCIE</span> Unidade convencional e poço</figcaption>
+<svg viewBox="0 0 640 530" role="img" aria-labelledby="surface-title surface-desc">
+<title id="surface-title">Unidade de bombeio com manivela, contrapeso, biela, balancim e cabeça do cavalo</title><desc id="surface-desc">As articulações permanecem conectadas, a correia aciona o redutor e o cabo movimenta a haste vertical. Um corte abaixo do solo mostra o revestimento, a tubulação e a bomba. Geometria ilustrativa e profundidade comprimida.</desc>
+<defs>
+<linearGradient id="steel"><stop stop-color="#425663"/><stop offset=".42" stop-color="#d4e0e7"/><stop offset=".58" stop-color="#91a5b3"/><stop offset="1" stop-color="#334b59"/></linearGradient>
+<linearGradient id="paint" x2="0" y2="1"><stop stop-color="#72a99f"/><stop offset=".35" stop-color="#315e59"/><stop offset="1" stop-color="#142c30"/></linearGradient>
+<linearGradient id="weight" x2="0" y2="1"><stop stop-color="#d9a853"/><stop offset="1" stop-color="#6b471b"/></linearGradient>
+<linearGradient id="soil" x2="0" y2="1"><stop stop-color="#292a27"/><stop offset=".5" stop-color="#171f24"/><stop offset="1" stop-color="#111a21"/></linearGradient>
+<pattern id="hatch" width="18" height="18" patternUnits="userSpaceOnUse"><path d="M0 18L18 0" stroke="#576165" stroke-opacity=".17"/></pattern>
+<pattern id="bolts" width="18" height="8" patternUnits="userSpaceOnUse"><circle cx="9" cy="4" r="1.5" fill="#dce6e9" opacity=".5"/></pattern>
+<clipPath id="well-clip"><rect x="509" y="374" width="42" height="140"/></clipPath>
+</defs>
+<path d="M18 370H621V520H18Z" fill="url(#soil)"/><path d="M18 370H621V520H18Z" fill="url(#hatch)"/>
+<path d="M18 406Q140 389 280 410T621 401M18 457Q155 441 330 461T621 449M18 493Q140 478 295 497T621 488" fill="none" stroke="#455058" stroke-opacity=".4" stroke-width="3"/>
+<path d="M18 370H621" stroke="#71817e" stroke-width="2"/><text x="30" y="394" class="small">CORTE DO POÇO</text><text x="30" y="415" class="small">Profundidade comprimida</text>
+<ellipse cx="295" cy="362" rx="245" ry="9" fill="#000" opacity=".6"/>
+<rect x="43" y="357" width="383" height="14" rx="2" fill="#5a6467"/><path d="M49 359H421" stroke="#8b9798"/><path d="M59 372v5M409 372v5" stroke="#273034" stroke-width="5"/>
+<g class="hot" data-part="well" tabindex="0" role="button" aria-label="Poço, revestimento e nível dinâmico" aria-pressed="false">
+<rect data-outline x="501" y="367" width="58" height="150" rx="3" fill="#18262e" stroke="#687d89" stroke-width="2"/><rect x="509" y="371" width="42" height="143" fill="#0b1c25"/>
+<rect id="fluid" x="509" y="425" width="42" height="89" fill="#1e4d64"/><path id="fluid-level" d="M504 425H557" stroke="#60a5fa" stroke-dasharray="4 3" stroke-width="2"/>
+<path id="level-callout" class="callout"/><text id="level-value" x="350" y="437" class="small" fill="#93c5fd"/>
+<text id="depth-value" x="350" y="462" class="value"/>
+</g>
+<g class="hot" data-part="rods" tabindex="0" role="button" aria-label="Hastes e tubulação de produção" aria-pressed="false">
+<rect data-outline x="516" y="343" width="28" height="164" fill="#091b21" stroke="#8c9eaa" stroke-width="2"/>
+<path id="well-flow" d="M521 505V378" class="water"/>
+<line id="rod" x1="530" y1="230" x2="530" y2="482" stroke="#c2d3dc" stroke-width="5"/>
+<g id="couplings" fill="#b8c7cf"><rect x="526" y="395" width="8" height="8" rx="1"/><rect x="526" y="444" width="8" height="8" rx="1"/></g>
+<g id="carrier"><path d="M518 0H542" stroke="url(#steel)" stroke-width="7"/><rect x="525" y="-5" width="10" height="11" rx="2" fill="#e4ba69"/></g>
+</g>
+<g class="hot" data-part="pump" tabindex="0" role="button" aria-label="Bomba no fundo, ampliada no painel ao lado" aria-pressed="false">
+<rect data-outline x="512" y="467" width="36" height="43" rx="3" fill="#0b302e" stroke="#49cbb9" stroke-width="2"/><rect id="mini-plunger" x="519" y="478" width="22" height="12" rx="2" fill="#9cb8bc"/><path d="M521 508l9 -7 9 7" fill="#49cbb9"/>
+<path d="M554 488H591" stroke="#2dd4bf" stroke-dasharray="3 3"/><text x="560" y="510" class="small">DETALHE ↗</text>
+</g>
+<path d="M500 427l10 -5 13 10 14 -10 13 10 10 -5" fill="none" stroke="#080e12" stroke-width="9"/><path d="M500 427l10 -5 13 10 14 -10 13 10 10 -5" fill="none" stroke="#7b8d97"/>
+<g><path d="M543 350H588V337H615" fill="none" stroke="#497f79" stroke-width="9"/><path id="outflow" d="M543 350H588V337H615" class="water"/>
+<rect x="516" y="343" width="28" height="12" rx="2" fill="url(#steel)"/><rect x="519" y="332" width="22" height="13" fill="#658791"/><rect x="511" y="361" width="38" height="9" rx="2" fill="#8da1a8"/>
+<path d="M579 342v16M572 339h14" stroke="#d3a958" stroke-width="3"/>
+</g>
+<g class="hot" data-part="drive" tabindex="0" role="button" aria-label="Motor, correia, redutor e contrapeso" aria-pressed="false">
+<rect data-outline x="57" y="318" width="68" height="34" rx="9" fill="url(#paint)" stroke="#76a199" stroke-width="2"/>
+<path d="M70 322v26M78 322v26M86 322v26M94 322v26M102 322v26" stroke="#182f30" stroke-width="3"/><rect x="68" y="310" width="22" height="9" rx="2" fill="#638981"/>
+<path d="M66 352v5M113 352v5" stroke="#91a3a5" stroke-width="6"/>
+<path d="M110 337L148 306M110 347L155 330" stroke="#718589" stroke-width="4"/>
+<circle cx="112" cy="342" r="8" fill="#0b1218" stroke="#9eb1b9" stroke-width="3"/><circle cx="152" cy="319" r="17" fill="#1c2e36" stroke="#98abb4" stroke-width="3"/>
+<path id="pulley" d="M136 319H168M152 303V335" stroke="#718b95" stroke-width="3"/>
+<path d="M139 351V297Q141 275 165 274Q193 274 197 300V351Z" fill="url(#paint)" stroke="#7b969b" stroke-width="2"/>
+<rect x="133" y="349" width="71" height="8" rx="2" fill="#83979e"/>
+<circle cx="165" cy="300" r="22" fill="#152932" stroke="#8ea5b0" stroke-width="3"/>
+<g id="crank-assembly"><path d="M110 300H205" stroke="#8c7b56" stroke-width="13" stroke-linecap="round"/><path d="M100 271Q88 300 100 329H121Q112 300 121 271Z" fill="url(#weight)" stroke="#e0b46a" stroke-width="2"/><path d="M102 278v44M110 278v44" stroke="#755323" stroke-width="2"/><circle cx="205" cy="300" r="7" fill="#cfdae0" stroke="#506672" stroke-width="3"/></g>
+<circle cx="165" cy="300" r="8" fill="#c9d7df" stroke="#354a55" stroke-width="3"/>
+</g>
+<g class="hot" data-part="beam" tabindex="0" role="button" aria-label="Balancim, biela e cabeça do cavalo" aria-pressed="true">
+<path d="M234 357L296 166H307L375 357H353L301 199L255 357Z" fill="#223f45" stroke="#72919b" stroke-width="2"/>
+<path d="M258 312H353M270 273H338M281 235H324M260 310L339 273M271 273L327 236" stroke="#536f79" stroke-width="5"/>
+<path d="M233 357H260M349 357H379" stroke="#afbcc0" stroke-width="6"/>
+<line id="pitman-shadow" x1="205" y1="300" x2="170" y2="170" stroke="#0b1116" stroke-width="13"/>
+<line id="pitman" x1="205" y1="300" x2="170" y2="170" stroke="url(#steel)" stroke-width="7"/>
+<g id="beam"><path data-outline d="M157 157H508V181H157Z" fill="url(#paint)" stroke="#7faea5" stroke-width="2"/><path d="M160 161H500M160 177H500" stroke="#16393a" stroke-width="3"/><rect x="164" y="165" width="335" height="8" fill="url(#bolts)"/>
+<path d="M508.45 72.8A230 230 0 0 1 518.74 241.07L494.97 233.35A205 205 0 0 0 485.79 83.36Z" fill="url(#paint)" stroke="#94c8bb" stroke-width="2"/>
+<path d="M494 101L508 169L502 213M493 128L512 169L497 194" stroke="#173c3a" stroke-width="5"/>
+<circle cx="170" cy="170" r="7" fill="#cad9dc" stroke="#274f53" stroke-width="3"/>
+</g>
+<path d="M286 168v-11h28v11" fill="#334b50" stroke="#8caaa8" stroke-width="3"/><circle cx="300" cy="170" r="11" fill="url(#steel)" stroke="#284e52" stroke-width="4"/><circle cx="300" cy="170" r="3" fill="#254249"/>
+<path id="bridle" d="M530 170V230" stroke="#c8d1d6" stroke-width="2.5"/>
+</g>
+<path d="M64 315V239H99" class="callout"/><text x="34" y="227" class="label">Motor + redutor</text>
+<text x="32" y="62" class="label">Balancim articulado</text><path d="M164 67H285V142" class="callout"/>
+<text x="336" y="28" class="small">Cabeça do cavalo</text>
+<text id="stroke-value" x="350" y="72" class="value"/>
+<text id="flow-value" x="30" y="475" class="value"/><text x="30" y="496" class="small">Vazão calculada · condições de tanque</text>
+</svg></figure>
+<figure class="scene"><figcaption><span class="badge">02 / AMPLIAÇÃO</span> Bomba em corte</figcaption>
+<svg viewBox="0 0 360 530" role="img" aria-labelledby="pump-title pump-desc">
+<title id="pump-title">Pistão e válvulas de uma bomba de hastes</title><desc id="pump-desc">Na subida, a válvula fixa abre e a de passeio fecha. Na descida, a fixa fecha e a de passeio abre. As setas indicam a passagem de fluido em um ciclo ideal de bomba cheia, sem simular pressão, gás ou defeitos.</desc>
+<defs><linearGradient id="pump-steel"><stop stop-color="#3c535f"/><stop offset=".38" stop-color="#d2e0e8"/><stop offset=".6" stop-color="#a2b8c6"/><stop offset="1" stop-color="#405d6e"/></linearGradient><linearGradient id="liquid" x2="0" y2="1"><stop stop-color="#144b4d"/><stop offset="1" stop-color="#0c292e"/></linearGradient><clipPath id="barrel-clip"><rect x="104" y="60" width="72" height="384"/></clipPath></defs>
+<text x="25" y="28" class="label">Para a tubulação ↑</text><text id="piston-value" x="25" y="51" class="value"/>
+<rect x="87" y="67" width="106" height="390" rx="6" fill="#12212b" stroke="#526c7c" stroke-width="2"/><rect x="96" y="66" width="88" height="392" fill="url(#pump-steel)"/>
+<rect x="104" y="66" width="72" height="386" fill="url(#liquid)"/>
+<g clip-path="url(#barrel-clip)"><path id="lift-flow" d="M118 430V58M162 430V58" class="water"/><rect id="chamber" x="105" y="250" width="70" height="180" fill="#25847c" opacity=".3"/></g>
+<g id="zoom-rod"><rect x="136" y="64" width="8" height="240" fill="url(#pump-steel)"/></g>
+<g id="zoom-plunger"><path d="M108 0H128V10H152V0H172V79H108Z" fill="url(#pump-steel)" stroke="#b2c4cf"/><rect x="125" y="14" width="30" height="59" rx="4" fill="#123e41"/>
+<path d="M108 13H124M156 13H172M108 22H124M156 22H172M108 64H124M156 64H172M108 72H124M156 72H172" stroke="#405b69" stroke-width="2"/>
+<path id="travel-flow" d="M140 92V19" class="water"/>
+<path d="M126 66L132 61H148L154 66V72H126Z" fill="#dfb964" stroke="#906d32"/>
+<circle id="travel-ball" cx="140" cy="54" r="9" fill="url(#pump-steel)" stroke="#dbe7ec"/>
+<path d="M126 42V29Q140 19 154 29V42" fill="none" stroke="#8ca7b6" stroke-width="3"/>
+</g>
+<path id="travel-callout" class="callout"/><text id="travel-name" x="213" y="205" class="label">Válvula de</text><text id="travel-name-2" x="213" y="225" class="label">passeio</text><text id="travel-state" x="213" y="247" class="value"/>
+<path d="M112 430L130 424H150L168 430V439H112Z" fill="#dbb264" stroke="#85642d"/>
+<path d="M120 412V394Q140 382 160 394V412" fill="none" stroke="#89a5b6" stroke-width="3"/>
+<path id="intake-flow" d="M140 490V398" class="water"/>
+<circle id="standing-ball" cx="140" cy="415" r="11" fill="url(#pump-steel)" stroke="#dbe7ec"/>
+<path d="M181 421H205" class="callout"/><text x="213" y="404" class="label">Válvula fixa</text><text id="standing-state" x="213" y="426" class="value"/>
+<path d="M99 458H181M112 465H168" stroke="#89a5b6" stroke-width="5"/><path d="M119 469V489H161V469" fill="#1a4b4a" stroke="#588b8d" stroke-width="2"/>
+<path d="M124 474h32M124 480h32M124 486h32" stroke="#85b3ac"/>
+<text x="86" y="518" class="label">Entrada de fluido ↑</text>
+<path d="M192 98H210" class="callout"/><text x="215" y="103" class="small">Camisa</text>
+</svg></figure>
+</div>
+<div class="phase-panel"><div><h3 id="phase">Curso de subida</h3><p id="phase-description"></p></div><div><div class="valves"><span id="standing-chip"></span><span id="travel-chip"></span></div><div class="scrub"><label for="cycle"><span>Percorra um ciclo · arraste para pausar</span><span id="cycle-value">0%</span></label><input type="range" id="cycle" min="0" max="100" step="0.1" value="0" aria-label="Posição no ciclo de bombeamento"></div></div></div>
+<nav class="chips" aria-label="Explorar componentes"><button type="button" data-part="beam" aria-pressed="true">01 · Unidade de superfície</button><button type="button" data-part="rods" aria-pressed="false">02 · Hastes</button><button type="button" data-part="pump" aria-pressed="false">03 · Bomba e válvulas</button><button type="button" data-part="well" aria-pressed="false">04 · Poço e fluido</button><button type="button" data-part="drive" aria-pressed="false">05 · Motor e transmissão</button></nav>
+<div class="details"><div><div class="source" id="source"></div><h3 id="part-title"></h3><p id="description"></p></div><div class="facts" id="facts"></div></div>
+<div class="foot"><span>Geometria ilustrativa · vistas em escalas diferentes · válvulas em ciclo ideal de bomba cheia.<br><a href="https://www.slb.com/resource-library/oilfield-review/defining-series/defining-rod-pumps" target="_blank" rel="noopener noreferrer">Como funciona: referência SLB</a></span><span id="cadence"></span></div>
+</section>
+<script type="application/json" id="bm-data">__BM_DATA__</script>
+<script>__BM_MOTION__</script>
+<script>
+(() => {
+  const data = JSON.parse(document.getElementById('bm-data').textContent);
+  const panel=document.querySelector('.panel');
+  const fmt = (n, digits=1) => Number(n).toLocaleString('pt-BR', {minimumFractionDigits:digits, maximumFractionDigits:digits});
+  const p=data.inputs, r=data.results;
+  const parts = {
+    beam: {title:'A unidade transforma rotação em movimento vertical', source:'Origem dos dados · placa e desenho do fabricante', description:'O motor gira a manivela, a biela movimenta o balancim e a cabeça do cavalo transmite o movimento às hastes. As dimensões c, h, d1 e d2 determinam o curso e o limite de velocidade.', facts:[['Curso de superfície · S',fmt(r.surface_stroke)+' in'],['Cadência utilizada · N',fmt(r.operating_speed)+' ciclos/min'],['Raio da manivela · c',fmt(p.crank_radius)+' in'],['Comprimento da biela · h',fmt(p.pitman_length)+' in']]},
+    rods: {title:'As hastes levam o movimento até o fundo', source:'Origem dos dados · especificação das hastes e da tubulação', description:'A coluna conecta a unidade à bomba. Diâmetro, comprimento e material definem peso, alongamento e tensão. A tubulação ao redor conduz o fluido até a superfície.', facts:[['Diâmetro da haste',fmt(p.rod_diameter,3)+' in'],['Peso no ar · Wr',fmt(r.rod_weight,0)+' lbf'],['Alongamento das hastes',fmt(r.rod_stretch)+' in'],['Tubulação ancorada',p.anchored_tubing?'Sim':'Não']]},
+    pump: {title:'Duas válvulas fazem o fluido avançar', source:'Origem dos dados · especificação da bomba e estimativa de eficiência', description:'Na subida ideal, a válvula de passeio fecha e a fixa abre para admitir fluido. Na descida, a fixa fecha e a de passeio abre, permitindo a passagem pelo pistão. A ampliação mostra essa sequência; o curso efetivo e a eficiência são os calculados no projeto.', facts:[['Diâmetro do pistão',fmt(p.plunger_diameter,2)+' in'],['Curso efetivo · Sp',fmt(r.plunger_stroke)+' in'],['Eficiência informada',fmt(p.efficiency*100,0)+'%'],['Vazão estimada',fmt(r.flow_rate)+' STB/d']]},
+    well: {title:'O poço e o fluido definem parte da carga', source:'Origem dos dados · registros do poço, teste de nível e análise do óleo', description:'A profundidade da bomba e o nível dinâmico são medidas diferentes. O grau API caracteriza a densidade relativa do óleo. No modelo atual, a carga hidrostática usa a profundidade total da bomba; o nível dinâmico entra na elevação líquida.', facts:[['Bomba · D',fmt(p.depth,0)+' ft'],['Nível dinâmico · H',fmt(p.fluid_level,0)+' ft'],['Grau API',fmt(p.oil_api,1)+' °API'],['Pressão na cabeça',fmt(p.wellhead_pressure,0)+' psig']]},
+    drive: {title:'O motor fornece potência; o redutor entrega torque', source:'Origem dos dados · cálculo do projeto e placa da unidade', description:'A potência estimada combina a elevação do fluido, o atrito e a margem escolhida. O redutor é verificado separadamente pelo torque máximo. Potência do motor e torque do redutor não são a mesma grandeza.', facts:[['Motor requerido',fmt(r.motor_power)+' hp'],['Parcela hidráulica',fmt(r.hydraulic_power)+' hp'],['Parcela de atrito',fmt(r.friction_power)+' hp'],['Torque estimado',fmt(r.peak_torque,0)+' lbf·in']]}
+  };
+  function selectPart(name) {
+    const part = parts[name];
+    document.querySelectorAll('[data-part]').forEach(el => el.setAttribute('aria-pressed',String(el.dataset.part===name)));
+    document.getElementById('source').textContent=part.source;
+    document.getElementById('part-title').textContent=part.title;
+    document.getElementById('description').textContent=part.description;
+    const facts=document.getElementById('facts');facts.replaceChildren();
+    part.facts.forEach(([label,value])=>{const div=document.createElement('div');div.className='fact';const small=document.createElement('small');small.textContent=label;const strong=document.createElement('strong');strong.textContent=value;div.append(small,strong);facts.append(div)});
+  }
+  document.querySelectorAll('[data-part]').forEach(el=>{
+    el.addEventListener('click',()=>selectPart(el.dataset.part));
+    if(el.tagName.toLowerCase()==='g')el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectPart(el.dataset.part)}});
+  });
+  selectPart('beam');
+
+  const byId=id=>document.getElementById(id);
+  byId('depth-value').textContent='D = '+fmt(p.depth,0)+' ft';
+  byId('level-value').textContent='H = '+fmt(p.fluid_level,0)+' ft';
+  byId('stroke-value').textContent='S = '+fmt(r.surface_stroke)+' in';
+  byId('piston-value').textContent='Sp = '+fmt(r.plunger_stroke)+' in';
+  byId('flow-value').textContent=fmt(r.flow_rate)+' STB/d';
+  const fluidY=375+Math.min(1,Math.max(0,p.fluid_level/p.depth))*127;
+  byId('fluid').setAttribute('y',fluidY);byId('fluid').setAttribute('height',514-fluidY);
+  byId('fluid-level').setAttribute('d',`M504 ${fluidY}H557`);
+  byId('level-callout').setAttribute('d',`M504 ${fluidY}H481V433H471`);
+  const motionQuery=window.matchMedia('(prefers-reduced-motion: reduce)');
+  let paused=motionQuery.matches, angle=.5, last=0, request, inView=true, pace=1, lastPhase='';
+  const visibility=new IntersectionObserver(entries=>{inView=entries[0].isIntersecting});visibility.observe(panel);
+  const pause=byId('pause'), cycle=byId('cycle');
+  const moving=Object.fromEntries(['beam','pitman','pitman-shadow','crank-assembly','pulley','rod','carrier','bridle','couplings','mini-plunger','zoom-plunger','zoom-rod','chamber','travel-ball','standing-ball','travel-callout','travel-name','travel-name-2','travel-state','travel-flow','intake-flow','lift-flow','outflow','well-flow'].map(id=>[id,byId(id)]));
+  function updatePause(){pause.textContent=paused?'Retomar animação':'Pausar animação';pause.setAttribute('aria-pressed',String(paused));}
+  function setValve(id, open, label){byId(id+'-state').textContent=open?'ABERTA':'FECHADA';byId(id+'-state').style.fill=open?'#5eead4':'#e9be69';const chip=byId(id+'-chip');chip.textContent=label+' · '+(open?'aberta':'fechada');chip.className=open?'open':'closed';}
+  function draw(){
+    const pose=PumpMotion.at(angle), degrees=angle*180/Math.PI, plungerY=130+150*pose.fraction;
+    moving.beam.setAttribute('transform',`rotate(${pose.beamAngle*180/Math.PI} 300 170)`);
+    ['pitman','pitman-shadow'].forEach(id=>{const line=moving[id];line.setAttribute('x1',pose.pin.x);line.setAttribute('y1',pose.pin.y);line.setAttribute('x2',pose.joint.x);line.setAttribute('y2',pose.joint.y)});
+    moving['crank-assembly'].setAttribute('transform',`rotate(${degrees} 165 300)`);
+    moving.pulley.setAttribute('transform',`rotate(${degrees*4} 152 319)`);
+    moving.carrier.setAttribute('transform',`translate(0 ${pose.carrierY})`);
+    moving.bridle.setAttribute('d',`M530 170V${pose.carrierY}`);
+    moving.rod.setAttribute('y1',pose.carrierY);moving.rod.setAttribute('y2',478+pose.fraction*12);
+    moving.couplings.setAttribute('transform',`translate(0 ${pose.fraction*12})`);
+    moving['mini-plunger'].setAttribute('y',478+pose.fraction*12);
+    moving['zoom-plunger'].setAttribute('transform',`translate(0 ${plungerY})`);
+    moving['zoom-rod'].firstElementChild.setAttribute('height',plungerY-64);
+    moving.chamber.setAttribute('y',plungerY+79);moving.chamber.setAttribute('height',430-plungerY-79);
+    moving['travel-ball'].setAttribute('cy',pose.travelingOpen?39:54);
+    moving['standing-ball'].setAttribute('cy',pose.standingOpen?399:415);
+    moving['travel-callout'].setAttribute('d',`M180 ${plungerY+54}H205`);
+    ['travel-name','travel-name-2','travel-state'].forEach((id,i)=>moving[id].setAttribute('y',plungerY+35+i*20));
+    // Pontos indicam direção; não representam a velocidade local do fluido.
+    ['travel-flow','intake-flow','lift-flow','well-flow','outflow'].forEach(id=>moving[id].setAttribute('stroke-dashoffset',-angle*24));
+    moving['travel-flow'].style.opacity=pose.travelingOpen?'1':'.08';
+    moving['intake-flow'].style.opacity=pose.standingOpen?'1':'.08';
+    moving['lift-flow'].style.opacity=pose.up&&!pose.reversing?'.8':'.12';
+    moving['well-flow'].style.opacity=pose.up&&!pose.reversing?'.8':'.12';
+    moving.outflow.style.opacity=pose.up&&!pose.reversing?'.8':'.12';
+    const phase=pose.reversing?'turn':pose.up?'up':'down';
+    if(phase!==lastPhase){lastPhase=phase;byId('phase').textContent=phase==='turn'?'Inversão do movimento':pose.up?'↑ Subida · admissão e elevação':'↓ Descida · passagem pelo pistão';
+      byId('phase-description').textContent=phase==='turn'?'O movimento muda de sentido. As válvulas são mostradas fechadas durante a inversão ideal.':pose.up?'O pistão sobe, sustenta a coluna de fluido e admite líquido pela válvula fixa.':'O pistão desce. O fluido passa pela válvula de passeio; a válvula fixa impede o retorno ao poço.';
+      setValve('standing',pose.standingOpen,'Fixa');setValve('travel',pose.travelingOpen,'Passeio');}
+    const percent=angle/(2*Math.PI)*100;cycle.value=percent;byId('cycle-value').textContent=fmt(percent,0)+'%';
+    cycle.setAttribute('aria-valuetext',fmt(percent,0)+'% do ciclo; '+(pose.up?'subida':'descida'));
+  }
+  function updateCadence(){byId('cadence').textContent=fmt(r.operating_speed)+' ciclos/min no projeto · visual '+fmt(pace,2)+'×';}
+  function tick(now){if(last&&!paused&&inView&&document.visibilityState==='visible'){angle=(angle+Math.min(now-last,100)*r.operating_speed/60000*2*Math.PI*pace)%(2*Math.PI);draw()}last=now;request=requestAnimationFrame(tick);}
+  pause.addEventListener('click',()=>{paused=!paused;updatePause()});
+  byId('pace').addEventListener('change',e=>{pace=Number(e.target.value);updateCadence()});
+  cycle.addEventListener('input',()=>{paused=true;angle=Number(cycle.value)/100*2*Math.PI;draw();updatePause()});
+  motionQuery.addEventListener('change',e=>{paused=e.matches;updatePause()});
+  window.addEventListener('pagehide',()=>{cancelAnimationFrame(request);visibility.disconnect()});
+  draw();updatePause();updateCadence();request=requestAnimationFrame(tick);
+})();
+</script></body></html>
